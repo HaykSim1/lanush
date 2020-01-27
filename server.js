@@ -64,12 +64,13 @@ require('./routes')(app);
 
 app.use(express.static(path.join(__dirname, 'website')));
 app.use(express.static(path.join(__dirname, 'admin')));
-app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, 'website', 'index.html'));
-});
-app.get('/admin/', function(req, res) {
+app.get('/admin*', function(req, res) {
   res.sendFile(path.join(__dirname, 'admin', 'index.html'));
 });
+app.get('/*', function(req, res) {
+  res.sendFile(path.join(__dirname, 'website', 'index.html'));
+});
+
 // app.get('/admin', function (req, res) {
 //   res.sendFile(path.resolve(__dirname, './admin/index.html'));
 //   res.end();

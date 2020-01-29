@@ -7,7 +7,6 @@ const Client = require('../../models/Client');
 const Service = require('../../models/Service');
 const Schedule = require('../../models/Schedule');
 const Price = require('../../models/ServicePrice');
-const User = require('../../models/User');
 const Category = require('../../models/ServiceCategory');
 
 module.exports = (app) => {

@@ -18,11 +18,12 @@ module.exports = (app) => {
 
   app.post('/api/user/login', async (req, res, next) => {
     //Login a registered user
-    // const { email, password } = req.body;
-    // const user = await User.findByCredentials(email, password);
-    // console.log(user);
+    //const { email, password } = req.body;
+  //  const user = new User({email, password, name: 'Hayk'});
+//	  await user.save();
+//	  const token = await user.generateAuthToken();
     //
-    // return res.status(200).json(user);
+    //return res.status(200).json(user);
     try {
       const { email, password } = req.body;
 

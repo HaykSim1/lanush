@@ -10,10 +10,9 @@ const config = require('./config');
 const isDev = process.env.NODE_ENV !== 'production';
 const port  = process.env.PORT || 8080;
 
-
 // Configuration
 // ================================================================================================
-
+console.log(isDev, config.db);
 // Set up Mongoose
 mongoose.connect(isDev ? config.db_dev : config.db, {
   useFindAndModify: false,

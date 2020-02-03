@@ -32,10 +32,8 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.get('/api/sliders/main/:id', async (req, res, next) => {
-
-    await Slider.updateMany({}, { isSlide: true });
-    await Slider.update({ _id: req.params.id}, { isSlide: false });
+  app.put('/api/sliders/main/:id', async (req, res, next) => {
+    await Slider.update({ _id: req.params.id}, { isSlide: !req.body.checked });
 
     Slider.find()
     .exec()

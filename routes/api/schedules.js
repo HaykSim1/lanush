@@ -1,16 +1,17 @@
 const Schedules = require('../../models/Schedule');
 const Client = require('../../models/Client');
+const auth = require('../../middleware/auth');
 
 module.exports = (app) => {
 
-  app.get('/api/schedules', (req, res, next) => {
+  app.get('/api/schedules', auth, (req, res, next) => {
     Schedules.find()
       .exec()
       .then((schedules) => res.status(200).json(schedules))
       .catch((err) => next(err));
   });
 
-  app.post('/api/schedules', (req, res, next) => {
+  app.post('/api/schedules', auth, (req, res, next) => {
     const {
       title,
       rRule,
@@ -62,7 +63,7 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.put('/api/schedules/:id', (req, res, next) => {
+  app.put('/api/schedules/:id', auth, (req, res, next) => {
     Schedules.findByIdAndUpdate(req.params.id, req.body)
       .then(() => {
         Client.updateOne({scheduleId: req.params.id}, {
@@ -73,7 +74,7 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.delete('/api/schedules/:id', async (req, res, next) => {
+  app.delete('/api/schedules/:id', auth, async (req, res, next) => {
     Schedules.findByIdAndRemove(req.params.id, req.body)
     .then(() => {
       Client.updateOne({ scheduleId: req.params.id }, { status: 0 })

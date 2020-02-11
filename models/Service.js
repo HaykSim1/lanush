@@ -14,6 +14,7 @@ const ServiceSchema = new mongoose.Schema({
   }],
   prices: [{
     title: String,
+    order: { type: Number, default: 0 },
     data: [{
       description: String,
       price: Number,

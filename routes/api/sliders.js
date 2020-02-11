@@ -2,9 +2,10 @@ const fs = require('fs');
 
 const Slider = require('../../models/Slider');
 const upload = require('../../middleware/uploader');
+const auth = require('../../middleware/auth');
 
 module.exports = (app) => {
-  app.get('/api/sliders', async (req, res, next) => {
+  app.get('/api/sliders', auth, async (req, res, next) => {
     //await Slider.updateMany({}, { isSlide: true });
     Slider.find()
       .exec()
@@ -12,7 +13,7 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.post('/api/sliders', upload.single('image'), (req, res, next) => {
+  app.post('/api/sliders', auth, upload.single('image'), (req, res, next) => {
     const slider = new Slider({ ...req.body, image: req.file ? req.file.path : '' });
 
     slider.save()
@@ -20,8 +21,8 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.put('/api/sliders/:id', upload.single('image'), (req, res, next) => {
-    const updated = { ...req.body };
+  app.put('/api/sliders/:id', auth, upload.single('image'), (req, res, next) => {
+    const updated = { ...req.body, isSlide: req.body.isSlide !== 'false' };
     if (req.file) {
       updated.image = req.file.path;
     }
@@ -32,7 +33,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.put('/api/sliders/main/:id', async (req, res, next) => {
+  app.put('/api/sliders/main/:id', auth, async (req, res, next) => {
     await Slider.update({ _id: req.params.id}, { isSlide: !req.body.checked });
 
     Slider.find()
@@ -41,7 +42,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.delete('/api/sliders/:id', async (req, res, next) => {
+  app.delete('/api/sliders/:id', auth, async (req, res, next) => {
     const slider = await Slider.findById(req.params.id);
     const exist = await fs.existsSync(slider.image);
 

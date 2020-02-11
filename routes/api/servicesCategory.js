@@ -1,8 +1,9 @@
 const Category = require('../../models/ServiceCategory');
 const Price = require('../../models/ServicePrice');
+const auth = require('../../middleware/auth');
 
 module.exports = (app) => {
-  app.get('/api/categories', (req, res, next) => {
+  app.get('/api/categories', auth, (req, res, next) => {
     Category.find()
     .sort('-order')
       .exec()
@@ -10,16 +11,15 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.post('/api/categories', (req, res, next) => {
+  app.post('/api/categories', auth, (req, res, next) => {
     const category = new Category(req.body);
 
     category.save()
-    .sort('-order')
       .then(() => res.json(category))
       .catch((err) => next(err));
   });
 
-  app.put('/api/categories/:id', (req, res, next) => {
+  app.put('/api/categories/:id', auth, (req, res, next) => {
     Category.findByIdAndUpdate(req.params.id, req.body)
     .sort('-order')
       .then(() => {
@@ -28,7 +28,7 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.delete('/api/categories/:id', (req, res, next) => {
+  app.delete('/api/categories/:id', auth, (req, res, next) => {
     Category.findByIdAndRemove(req.params.id)
     .sort('-order')
     .then(() => {

@@ -17,8 +17,10 @@ const ClientSchema = new Schema({
   serviceIds: [{ type: Schema.Types.ObjectId, ref: 'ServicePrice' }],
   worker: { type: Schema.Types.ObjectId, ref: 'Worker' },
   scheduleId: { type: Schema.Types.ObjectId, ref: 'Schedule' },
-  time: { type: Date },
-  status: { type: Number, default: 1 },
+  time: { type: Date, required: true },
+  timeEnd: { type: Date, required: true },
+  status: { type: Number, default: 0 },
+  rRule: { type: String, required: false },
   date: { type: Date, default: Date.now },
 });
 

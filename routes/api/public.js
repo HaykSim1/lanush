@@ -1,11 +1,10 @@
 const dayjs = require('dayjs');
-
+const mailer = require('../../libs/mailer');
 const Text = require('../../models/Text');
 const Worker = require('../../models/Worker');
 const Slider = require('../../models/Slider');
 const Client = require('../../models/Client');
 const Service = require('../../models/Service');
-const Schedule = require('../../models/Schedule');
 const Price = require('../../models/ServicePrice');
 const Category = require('../../models/ServiceCategory');
 
@@ -27,7 +26,7 @@ module.exports = (app) => {
   });
 
   app.get('/api/public/schedules', (req, res, next) => {
-    Schedule.find()
+    Client.find()
     .sort('-order')
     .exec()
     .then((schedules) => res.status(200).json(schedules))
@@ -62,28 +61,38 @@ module.exports = (app) => {
 
   app.post('/api/public/schedules', async (req, res, next) => {
     const { user, serviceIds, worker, time, total } = req.body;
-    const client = new Client({ ...user, serviceIds, worker, time, total });
-    await client.save();
 
-    const workerFull = worker ? await Worker.findById(worker) : { name: 'Any' };
-
-    const title = `Book from ${user.name}, Total: ${total}`;
-    const note = `Name: ${user.name}, Phone: ${user.phone}, Email: ${user.email}, Worker: ${workerFull.name}`;
-    const phone = user.phone;
     const startDate = dayjs(time);
 
     const services = await Price.find({
       '_id': { $in: serviceIds }
     });
+    const serviceList = [];
+    const duration = services.reduce((acc, elem) => {
+      serviceList.push(elem.title);
+      return acc + elem.duration;
+    }, 0);
+    const timeEnd = startDate.add(duration, 'm').toDate();
+    const person = await Worker.findById(worker);
+    const client = new Client({ ...user, serviceIds, worker, time, timeEnd,  total });
+    await client.save();
 
-    const duration = services.reduce((acc, elem) => acc + elem.duration, 0);
-    const endDate = startDate.add(duration, 'm').toDate();
+    mailer.sendEmail({
+      to: user.email,
+      startDate,
+      endDate: startDate.add(duration, 'm'),
+      service: serviceList.join(', '),
+      worker: person ? person.name : 'Irgendein',
+      text: "Lieber Kunde, hiermit möchten wir Sie an Ihren Termin bei uns La'Nush erinnern",
+    });
 
-    const schedule = new Schedule({ title, note, phone, startDate, endDate, total });
+    return res.status(200).json(client);
+  });
 
-    await schedule.save();
-    await Client.findByIdAndUpdate(client._id, { scheduleId: schedule._id });
-    return res.status(200).json(schedule);
+  app.post('/api/public/contact-submit', (req, res, next) => {
+    mailer.contactEmail(req.body);
+
+    res.status(200);
   });
 
   app.get('/api/public/sliders', (req, res, next) => {

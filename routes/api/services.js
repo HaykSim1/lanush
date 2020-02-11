@@ -2,9 +2,10 @@ const fs = require('fs');
 
 const Service = require('../../models/Service');
 const upload = require('../../middleware/uploader');
+const auth = require('../../middleware/auth');
 
 module.exports = (app) => {
-  app.get('/api/services', (req, res, next) => {
+  app.get('/api/services', auth, (req, res, next) => {
     Service.find({ disabled: false })
     .sort('-order')
       .exec()
@@ -12,7 +13,7 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.get('/api/services/:id', (req, res, next) => {
+  app.get('/api/services/:id', auth, (req, res, next) => {
     Service.findById(req.params.id)
     .sort('-order')
     .exec()
@@ -20,7 +21,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.post('/api/services', upload.single('image'), (req, res, next) => {
+  app.post('/api/services', auth, upload.single('image'), (req, res, next) => {
     const service = new Service({ ...req.body, image: req.file ? req.file.path : '' });
 
     service.save()
@@ -29,7 +30,7 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.put('/api/services/:id', upload.single('image'), (req, res, next) => {
+  app.put('/api/services/:id', auth, upload.single('image'), (req, res, next) => {
     const updated = { ...req.body };
     if (req.file) {
       updated.image = req.file.path;
@@ -42,7 +43,7 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.delete('/api/services/:id', async (req, res, next) => {
+  app.delete('/api/services/:id', auth, async (req, res, next) => {
     const service = await Service.findById(req.params.id);
     const exist = await fs.existsSync(service.image);
 
@@ -53,7 +54,7 @@ module.exports = (app) => {
   });
 
   // Service Points
-  app.post('/api/services/:id/point', async (req, res, next) => {
+  app.post('/api/services/:id/point', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
 
@@ -66,7 +67,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.delete('/api/services/:id/point/:pointId', async (req, res, next) => {
+  app.delete('/api/services/:id/point/:pointId', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
 
@@ -79,7 +80,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.put('/api/services/:id/point/:pointId', async (req, res, next) => {
+  app.put('/api/services/:id/point/:pointId', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
 
@@ -97,7 +98,7 @@ module.exports = (app) => {
   });
 
   // Service prices
-  app.post('/api/services/:id/price', async (req, res, next) => {
+  app.post('/api/services/:id/price', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
 
@@ -108,7 +109,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.delete('/api/services/:id/price/:priceId', async (req, res, next) => {
+  app.delete('/api/services/:id/price/:priceId', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
 
@@ -121,7 +122,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.put('/api/services/:id/price/:pid', async (req, res, next) => {
+  app.put('/api/services/:id/price/:pid', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
     const price = service.prices.id(req.params.pid);
@@ -135,7 +136,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.post('/api/services/:id/price/:priceId/data', async (req, res, next) => {
+  app.post('/api/services/:id/price/:priceId/data', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
     service.prices.id(req.params.priceId).data.push(req.body);
@@ -145,7 +146,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.put('/api/services/:id/price/:priceId/data/:dataId', async (req, res, next) => {
+  app.put('/api/services/:id/price/:priceId/data/:dataId', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
     const price = service.prices.id(req.params.priceId).data.id(req.params.dataId);
@@ -159,7 +160,7 @@ module.exports = (app) => {
     .catch((err) => next(err));
   });
 
-  app.delete('/api/services/:id/price/:priceId/data/:dataId', async (req, res, next) => {
+  app.delete('/api/services/:id/price/:priceId/data/:dataId', auth, async (req, res, next) => {
 
     const service = await Service.findById(req.params.id);
     service.prices.id(req.params.priceId).data.id(req.params.dataId).remove();

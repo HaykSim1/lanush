@@ -1,7 +1,8 @@
 const ServicePrice = require('../../models/ServicePrice');
+const auth = require('../../middleware/auth');
 
 module.exports = (app) => {
-  app.get('/api/prices', (req, res, next) => {
+  app.get('/api/prices', auth, (req, res, next) => {
     ServicePrice.find()
     .sort('-order')
       .exec()
@@ -9,16 +10,15 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.post('/api/prices', (req, res, next) => {
+  app.post('/api/prices', auth, (req, res, next) => {
     const price = new ServicePrice(req.body);
 
     price.save()
-    .sort('-order')
       .then(() => res.json(price))
       .catch((err) => next(err));
   });
 
-  app.put('/api/prices/:id', (req, res, next) => {
+  app.put('/api/prices/:id', auth, (req, res, next) => {
     ServicePrice.findByIdAndUpdate(req.params.id, req.body)
     .sort('-order')
       .then(() => {
@@ -27,7 +27,7 @@ module.exports = (app) => {
       .catch((err) => next(err));
   });
 
-  app.delete('/api/prices/:id', (req, res, next) => {
+  app.delete('/api/prices/:id', auth, (req, res, next) => {
     ServicePrice.findByIdAndRemove(req.params.id, req.body)
     .sort('-order')
     .then(() => {

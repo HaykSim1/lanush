@@ -1,14 +1,15 @@
 const Text = require('../../models/Text');
+const auth = require('../../middleware/auth');
 
 module.exports = (app) => {
-  app.get('/api/texts', (req, res, next) => {
+  app.get('/api/texts', auth, (req, res, next) => {
     Text.find()
       .exec()
       .then((texts) => res.status(200).json(texts))
       .catch((err) => next(err));
   });
 
-  app.put('/api/texts', (req, res, next) => {
+  app.put('/api/texts', auth, (req, res, next) => {
     const texts = [ ...req.body ];
 
     const promises = texts.map(item => {

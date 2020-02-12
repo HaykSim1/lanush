@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const dayjs = require('dayjs');
 const ical = require('ical-generator');
+const sgTransport = require('nodemailer-sendgrid-transport');
 
 class Mailer {
   constructor() {
@@ -10,15 +11,22 @@ class Mailer {
       timezone: 'Europe/Berlin'
     });
 
-    this.transporter = nodemailer.createTransport({
-      host: "smtp.hostinger.com",
-      port: 587,
-      secure: false, // use TLS
-      auth: {
-        user: "info@lanushmuenchen.de",
-        pass: "lanush2019"
-      }
-    });
+	  const options = {
+    auth: {
+        api_key: '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',
+    }
+};
+
+this.transporter = nodemailer.createTransport(sgTransport(options));
+    //this.transporter = nodemailer.createTransport({
+     // host: "smtp.hostinger.com",
+      //port: 587,
+     // secure: false, // use TLS
+     // auth: {
+     //   user: "info@lanushmuenchen.de",
+     //   pass: "lanush2019"
+     // }
+   // });
   }
 
   createEvent = ({ startDate, endDate, service }) => {
@@ -111,6 +119,6 @@ class Mailer {
 const mailer = new Mailer();
 // const startDate = dayjs().add(1, 'day');
 // const endDate = dayjs().add(1, 'day').add(2, 'hour');
-// mailer.sendEmail({ to: 'hayksim1@gmail.com', startDate, endDate, service: 'Epilcation/ Madal mudul', worker: 'Lusine Chakhalyan' });
+//mailer.sendEmail({ text: "aaa a a a a a a", to: 'hayksim1@gmail.com', startDate, endDate, service: 'Epilcation/ Madal mudul', worker: 'Lusine Chakhalyan' });
 
 module.exports = mailer;

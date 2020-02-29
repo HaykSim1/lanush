@@ -2,6 +2,7 @@ const dayjs = require('dayjs');
 const mailer = require('../../libs/mailer');
 const Text = require('../../models/Text');
 const Worker = require('../../models/Worker');
+const History = require('../../models/History');
 const Slider = require('../../models/Slider');
 const Client = require('../../models/Client');
 const Service = require('../../models/Service');
@@ -26,8 +27,7 @@ module.exports = (app) => {
   });
 
   app.get('/api/public/schedules', (req, res, next) => {
-    Client.find()
-    .sort('-order')
+    History.find()
     .exec()
     .then((schedules) => res.status(200).json(schedules))
     .catch((err) => next(err));
@@ -60,7 +60,7 @@ module.exports = (app) => {
   });
 
   app.post('/api/public/schedules', async (req, res, next) => {
-    const { user, serviceIds, worker, time, total } = req.body;
+    const { user, serviceIds, worker, time, ...rest } = req.body;
 
     const startDate = dayjs(time);
 
@@ -74,8 +74,18 @@ module.exports = (app) => {
     }, 0);
     const timeEnd = startDate.add(duration, 'm').toDate();
     const person = await Worker.findById(worker);
-    const client = new Client({ ...user, serviceIds, worker, time, timeEnd,  total });
-    await client.save();
+
+    let client = await Client.findOne({ email: user.email }).exec();
+
+    if (!client) {
+      client = new Client(user);
+
+      await client.save();
+    }
+
+    const history = new History({ ...rest, worker, serviceIds, time, timeEnd, note: user.note, clientId: client._id, duration });
+
+    await history.save();
 
     mailer.sendEmail({
       to: user.email,
@@ -86,7 +96,7 @@ module.exports = (app) => {
       text: "Lieber Kunde, hiermit möchten wir Sie an Ihren Termin bei uns La'Nush erinnern",
     });
 
-    return res.status(200).json(client);
+    return res.status(200).json(history);
   });
 
   app.post('/api/public/contact-submit', (req, res, next) => {

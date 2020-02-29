@@ -1,15 +1,17 @@
 const dayjs = require('dayjs');
-const Client = require('../../models/Client');
 const Worker = require('../../models/Worker');
+const History = require('../../models/History');
 const Price = require('../../models/ServicePrice');
 const auth = require('../../middleware/auth');
 const mailer = require('../../libs/mailer');
 
 module.exports = (app) => {
-  app.get('/api/appointments', auth, (req, res, next) => {
-    Client.find()
+  app.get('/api/appointments', auth, async (req, res, next) => {
+
+    History.find()
+      .populate('clientId')
       .exec()
-      .then((clients) => res.status(200).json(clients))
+      .then((appointments) => res.status(200).json(appointments))
       .catch((err) => next(err));
   });
 
@@ -20,42 +22,37 @@ module.exports = (app) => {
       '_id': { $in: req.body.serviceIds }
     });
 
-    const serviceList = [];
-    const duration = services.reduce((acc, elem) => {
-      serviceList.push(elem.title);
-      return acc + elem.duration;
-    }, 0);
-
-    const timeEnd = startDate.add(duration, 'm').toDate();
+    const timeEnd = startDate.add(req.body.duration, 'm').toDate();
 
     const updated = { ...req.body, timeEnd };
 
-    const client = await Client.findById(req.params.id);
+    const history = await History.findById(req.params.id);
 
-    if (client.status !== updated.status && updated.status !== 0) {
-      const person = await Worker.findById(updated.worker);
+    if (history.emailSent && history.status !== updated.status && updated.status !== 0) {
+      const serviceList = services.map(item => item.title);
+
+      const person = await Worker.findById(req.body.worker);
 
       const texts = {};
 
-      if (updated.status === 1) {
-        texts.text = `Hallo ${client.name}, \n Ihr Termin wurde gebucht.`;
+      if (req.body.status === 1) {
+        texts.text = `Hallo ${req.body.clientId.name}, \n Ihr Termin wurde gebucht.`;
       } else {
-        texts.text = `Hallo ${client.name}, \n La'Nush Laser&BeautyCenter musste Ihren Termin leider stornieren.`;
+        texts.text = `Hallo ${req.body.clientId.name}, \n La'Nush Laser&BeautyCenter musste Ihren Termin leider stornieren.`;
         texts.footerText = `Buchen Sie gleich einen neuen Termin. Das Team von La'Nush Laser&BeautyCenter freut sich auf Ihren Besuch!`;
       }
 
       await mailer.sendEmail({
-        to: client.email,
+        to: req.body.clientId.email,
         startDate,
-        endDate: startDate.add(duration, 'm'),
+        endDate: startDate.add(history.duration, 'm'),
         service: serviceList.join(', '),
         worker: person ? person.name : 'Irgendein',
         ...texts,
       });
     }
 
-
-    Client.findByIdAndUpdate(req.params.id, updated)
+    History.findByIdAndUpdate(req.params.id, updated)
       .then(() => {
         res.status(200).json(updated);
       })
@@ -63,20 +60,47 @@ module.exports = (app) => {
   });
 
   app.post('/api/appointments', auth, async (req, res, next) => {
-    const { serviceIds, time, name } = req.body;
+    const { history, ...client } = req.body;
 
+    const newHistory = new History({ ...history, clientId: client._id });
 
-    const startDate = dayjs(time);
+    await newHistory.save();
+
+    if (!history.emailSent) return res.status(200).json(newHistory);
+
+    const startDate = dayjs(history.time);
 
     const services = await Price.find({
-      '_id': { $in: serviceIds }
+      '_id': { $in: history.serviceIds }
     });
 
-    const duration = services.reduce((acc, elem) => acc + elem.duration, 0);
-    const timeEnd = startDate.add(duration, 'm').toDate();
+    const serviceList = services.map(item => item.title);
 
-    const client = new Client({ ...req.body, time, name: name.split(' ')[0], lastName: name.split(' ')[1] || '', timeEnd });
-    await client.save();
-    return res.status(200).json(client);
+    const person = await Worker.findById(history.worker);
+
+    const texts = {};
+
+    if (history.status === 1) {
+      texts.text = `Hallo ${client.name}, \n Ihr Termin wurde gebucht.`;
+    } else {
+      texts.text = `Hallo ${client.name}, \n La'Nush Laser&BeautyCenter musste Ihren Termin leider stornieren.`;
+      texts.footerText = `Buchen Sie gleich einen neuen Termin. Das Team von La'Nush Laser&BeautyCenter freut sich auf Ihren Besuch!`;
+    }
+
+    await mailer.sendEmail({
+      to: client.email,
+      startDate,
+      endDate: startDate.add(history.duration, 'm'),
+      service: serviceList.join(', '),
+      worker: person ? person.name : 'Irgendein',
+      ...texts,
+    });
+
+    return res.status(200).json(newHistory);
+  });
+
+  app.delete('/api/appointments/:id', auth, async (req, res, next) => {
+    await History.findByIdAndRemove(req.params.id);
+    return res.status(200).json({});
   });
 };

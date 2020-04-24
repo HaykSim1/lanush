@@ -6,6 +6,7 @@ const HistorySchema = new Schema({
   duration: { type: Number, required: true },
   feedBack: { type: Number, required: false },
   skinType: { type: Number, required: false },
+  color: { type: String, required: false },
   pigmentation: { type: Number, required: false },
   hairThickness: { type: Number, required: false },
   paymentInfo: { type: Number, required: false },

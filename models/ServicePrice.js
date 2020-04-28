@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 
 const ServicePriceSchema = new Schema({
   categoryId: { type: Schema.Types.ObjectId, ref: 'ServiceCategory' },
+  subCategoryId: { type: Schema.Types.ObjectId, ref: 'ServiceSubCategory', default: null },
   title: { type: String, required: true },
   price: { type: Number, required: true },
   duration: { type: Number, required: true },

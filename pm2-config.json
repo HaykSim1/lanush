@@ -1,0 +1,9 @@
+{
+    "apps": [
+        {
+            "name": "Lanush",
+            "script": "npm",
+            "args" : "start"
+        }
+    ]
+}

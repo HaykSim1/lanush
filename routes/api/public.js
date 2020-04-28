@@ -8,6 +8,7 @@ const Client = require('../../models/Client');
 const Service = require('../../models/Service');
 const Price = require('../../models/ServicePrice');
 const Category = require('../../models/ServiceCategory');
+const SubCategory = require('../../models/ServiceSubCategory');
 
 module.exports = (app) => {
   app.get('/api/public/texts', (req, res, next) => {
@@ -38,6 +39,13 @@ module.exports = (app) => {
     .sort('-order')
     .exec()
     .then((services) => res.status(200).json(services))
+    .catch((err) => next(err));
+  });
+
+  app.get('/api/public/subcategories', (req, res, next) => {
+    SubCategory.find()
+    .exec()
+    .then((categories) => res.status(200).json(categories))
     .catch((err) => next(err));
   });
 

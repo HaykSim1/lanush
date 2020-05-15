@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const HistorySchema = new Schema({
-  total: { type: Number, required: true },
-  duration: { type: Number, required: true },
+  total: { type: Number, required: false },
+  duration: { type: Number, required: false },
   feedBack: { type: Number, required: false },
   skinType: { type: Number, required: false },
   color: { type: String, required: false },
@@ -13,7 +13,7 @@ const HistorySchema = new Schema({
   LICount: { type: Number, required: false },
   category: { type: String, required: false },
   energy: { type: String, required: false },
-  note: { type: String, required: true },
+  note: { type: String, required: false },
   emailSent: { type: Boolean, required: false },
   laserKunde: { type: Boolean, required: false },
   noteIsImportant: { type: Boolean, required: false },
@@ -22,8 +22,8 @@ const HistorySchema = new Schema({
   serviceIds: [{ type: Schema.Types.ObjectId, ref: 'ServicePrice' }],
   worker: { type: Schema.Types.ObjectId, ref: 'Worker' },
   clientId: { type: Schema.Types.ObjectId, ref: 'Client' },
-  time: { type: Date, required: true },
-  timeEnd: { type: Date, required: true },
+  time: { type: Date, required: false },
+  timeEnd: { type: Date, required: false },
   progress: { type: Number, default: 0 },
   status: { type: Number, default: 0 },
   date: { type: Date, default: Date.now },

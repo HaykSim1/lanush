@@ -25,6 +25,10 @@ const userSchema = mongoose.Schema({
     required: true,
     minLength: 7,
   },
+  role: {
+    type: Number,
+    required: true,
+  },
   tokens: [{
     token: {
       type: String,
@@ -42,6 +46,20 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+userSchema.pre('findOneAndUpdate', async function (next) {
+  // Hash the password before saving the user model
+  const user = this;
+  const update = user.getUpdate();
+  const oldUser = await user.model.findById(update._id);
+  const isSame = await bcrypt.compare(oldUser.password, update.password);
+
+  if(!isSame) {
+    user._update.password = await bcrypt.hash(update.password, 8);
+  }
+
+  next();
+});
+
 userSchema.methods.generateAuthToken = async function() {
   // Generate an auth token for the user
   const user = this;
@@ -54,7 +72,7 @@ userSchema.methods.generateAuthToken = async function() {
 userSchema.statics.findByCredentials = async function(email, password) {
   // Search for a user by email and password.
   const user = await this.findOne({ email });
-	
+
   if (!user) {
     throw new Error({ error: 'Invalid login credentials' });
   }

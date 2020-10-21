@@ -6,7 +6,7 @@ const auth = require('../../middleware/auth');
 
 module.exports = (app) => {
 
-  app.post('/api/user', async (req, res, next) => {
+  app.post('/api/users', async (req, res, next) => {
     // Create a new user
     try {
       const user = new User({ ...req.body, role: 2 });
